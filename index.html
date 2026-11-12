@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -160,7 +161,7 @@
             updateDisplay() {
                 this.currentInputEl.textContent = this.formatNum(this.currentInput);
                 
-                // 入力中の計算式（例: 10 + 5）の更新
+                // 演算子と前の入力値がある場合、＝を押すまでは計算式（例: 10 + 5）を表示
                 if (this.operator && this.prevInput !== null) {
                     if (this.shouldResetInput) {
                         this.expressionDisplayEl.textContent = `${this.formatNum(this.prevInput)} ${this.operator}`;
@@ -213,6 +214,7 @@
             }
 
             setOperator(op) {
+                // 連続計算（＝を押さずに＋やーを押し続ける場合）の処理
                 if (this.operator && !this.shouldResetInput) {
                     this.calculate(false);
                 }
@@ -243,9 +245,11 @@
                 this.currentInput = res.toString();
 
                 if (isEqualsPressed) {
+                    // ＝が押された場合のみ、計算式表示をクリアする
                     this.operator = null;
                     this.prevInput = null;
                 } else {
+                    // 途中で演算子が押された場合は計算結果を保持して連続計算
                     this.prevInput = res.toString();
                 }
                 this.shouldResetInput = true;
