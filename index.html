@@ -1,218 +1,274 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>テープ電卓</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .key-active:active {
+            filter: brightness(1.4);
+        }
+        /* スクロールバーの非表示 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-black text-white h-screen flex flex-col justify-end overflow-hidden max-w-md mx-auto relative">
 
-void main() {
-  runApp(const TapeCalculatorApp());
-}
+    <!-- 1. 計算履歴 (テープエリア) -->
+    <div id="tape-container" class="flex-1 overflow-y-auto p-4 flex flex-col justify-end no-scrollbar space-y-3">
+        <div id="tape-list" class="flex flex-col space-y-2">
+            <!-- 履歴アイテムがここに追加されます -->
+        </div>
+    </div>
 
-class TapeCalculatorApp extends StatelessWidget {
-  const TapeCalculatorApp({super.key});
+    <!-- 2. Display / 合計表示エリア -->
+    <div class="bg-[#111] px-4 py-3 border-t border-b border-[#222] flex flex-col space-y-1">
+        <!-- 現在の入力値（計算中の数字） -->
+        <div id="current-input" class="text-right text-3xl font-light text-gray-300 tracking-wide min-h-[40px] overflow-x-auto no-scrollbar">
+            0
+        </div>
+        
+        <!-- 合計値 -->
+        <div class="flex justify-between items-center text-gray-400 pt-1 border-t border-[#222]">
+            <span class="text-sm font-medium">合計</span>
+            <div class="flex items-center space-x-1 cursor-pointer" onclick="tapeCalc.copyTotal()">
+                <span id="grand-total" class="text-xl font-bold text-white tracking-wide">0</span>
+                <span class="text-gray-500 text-sm">›</span>
+            </div>
+        </div>
+    </div>
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tape Calculator',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
-      ),
-      home: const CalculatorScreen(),
-    );
-  }
-}
+    <!-- 3. キーパッド -->
+    <div class="grid grid-cols-4 gap-[1px] bg-[#222]">
+        <!-- Row 1 -->
+        <button onclick="tapeCalc.clear()" class="bg-black text-white text-2xl h-16 flex items-center justify-center key-active font-normal">AC</button>
+        <button onclick="tapeCalc.clearTape()" class="bg-black text-white text-xl h-16 flex items-center justify-center key-active font-normal">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+        <button onclick="tapeCalc.backspace()" class="bg-black text-white text-xl h-16 flex items-center justify-center key-active font-normal">⌫</button>
+        <button onclick="tapeCalc.setOperator('÷')" class="bg-[#00a4b8] text-white text-3xl h-16 flex items-center justify-center key-active font-normal">÷</button>
 
-class HistoryItem {
-  final String expression;
-  final double result;
-  HistoryItem(this.expression, this.result);
-}
+        <!-- Row 2 -->
+        <button onclick="tapeCalc.appendNum('7')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">7</button>
+        <button onclick="tapeCalc.appendNum('8')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">8</button>
+        <button onclick="tapeCalc.appendNum('9')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">9</button>
+        <button onclick="tapeCalc.setOperator('×')" class="bg-[#00a4b8] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">×</button>
 
-class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+        <!-- Row 3 -->
+        <button onclick="tapeCalc.appendNum('4')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">4</button>
+        <button onclick="tapeCalc.appendNum('5')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">5</button>
+        <button onclick="tapeCalc.appendNum('6')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">6</button>
+        <button onclick="tapeCalc.setOperator('-')" class="bg-[#00a4b8] text-white text-3xl h-16 flex items-center justify-center key-active font-normal">-</button>
 
-  @override
-  State<CalculatorScreen> createState() => _CalculatorScreenState();
-}
+        <!-- Row 4 -->
+        <button onclick="tapeCalc.appendNum('1')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">1</button>
+        <button onclick="tapeCalc.appendNum('2')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">2</button>
+        <button onclick="tapeCalc.appendNum('3')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">3</button>
+        <button onclick="tapeCalc.setOperator('+')" class="bg-[#00a4b8] text-white text-3xl h-16 flex items-center justify-center key-active font-normal">+</button>
 
-class _CalculatorScreenState extends State<CalculatorScreen> {
-  String _display = '0';
-  String _prevNumber = '';
-  String _operator = '';
-  bool _shouldResetDisplay = false;
+        <!-- Row 5 -->
+        <button onclick="tapeCalc.appendNum('0')" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">0</button>
+        <button onclick="tapeCalc.appendDot()" class="bg-[#141414] text-white text-2xl h-16 flex items-center justify-center key-active font-normal">.</button>
+        <button onclick="tapeCalc.toggleSign()" class="bg-[#141414] text-white text-xl h-16 flex items-center justify-center key-active font-normal">⁺/₋</button>
+        <button onclick="tapeCalc.calculate()" class="bg-[#00a4b8] text-white text-3xl h-16 flex items-center justify-center key-active font-normal">=</button>
+    </div>
 
-  final List<HistoryItem> _history = [];
-  final NumberFormat _formatter = NumberFormat('#,###.##########');
+    <script>
+        class TapeCalculator {
+            constructor() {
+                this.currentInput = '0';
+                this.prevInput = null;
+                this.operator = null;
+                this.shouldResetInput = false;
+                this.tapeHistory = [];
+                
+                this.currentInputEl = document.getElementById('current-input');
+                this.tapeListEl = document.getElementById('tape-list');
+                this.grandTotalEl = document.getElementById('grand-total');
+                this.tapeContainerEl = document.getElementById('tape-container');
 
-  double get _totalSum => _history.fold(0, (sum, item) => sum + item.result);
+                this.initKeyboard();
+            }
 
-  void _onNumberTap(String val) {
-    setState(() {
-      if (_display == '0' || _shouldResetDisplay) {
-        _display = val;
-        _shouldResetDisplay = false;
-      } else {
-        _display += val;
-      }
-    });
-  }
+            formatNum(numStr) {
+                if (numStr === '' || numStr === null || numStr === undefined) return '0';
+                const parts = numStr.toString().split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                return parts.join('.');
+            }
 
-  void _onOperatorTap(String op) {
-    setState(() {
-      _prevNumber = _display;
-      _operator = op;
-      _shouldResetDisplay = true;
-    });
-  }
+            unformatNum(formattedStr) {
+                return formattedStr.toString().replace(/,/g, '');
+            }
 
-  void _onCalculate() {
-    if (_operator.isEmpty || _prevNumber.isEmpty) return;
+            updateDisplay() {
+                this.currentInputEl.textContent = this.formatNum(this.currentInput);
+            }
 
-    double num1 = double.parse(_prevNumber.replaceAll(',', ''));
-    double num2 = double.parse(_display.replaceAll(',', ''));
-    double res = 0;
+            appendNum(num) {
+                if (this.currentInput === '0' || this.shouldResetInput) {
+                    this.currentInput = num;
+                    this.shouldResetInput = false;
+                } else {
+                    if (this.currentInput.replace(/,/g, '').length < 12) {
+                        this.currentInput += num;
+                    }
+                }
+                this.updateDisplay();
+            }
 
-    switch (_operator) {
-      case '+': res = num1 + num2; break;
-      case '-': res = num1 - num2; break;
-      case '×': res = num1 * num2; break;
-      case '÷': res = num2 != 0 ? num1 / num2 : 0; break;
-    }
+            appendDot() {
+                if (this.shouldResetInput) {
+                    this.currentInput = '0.';
+                    this.shouldResetInput = false;
+                } else if (!this.currentInput.includes('.')) {
+                    this.currentInput += '.';
+                }
+                this.updateDisplay();
+            }
 
-    setState(() {
-      String exp = '${_formatter.format(num1)} $_operator ${_formatter.format(num2)}';
-      _history.add(HistoryItem(exp, res));
-      _display = _formatter.format(res);
-      _operator = '';
-      _prevNumber = '';
-      _shouldResetDisplay = true;
-    });
-  }
+            toggleSign() {
+                if (this.currentInput !== '0') {
+                    if (this.currentInput.startsWith('-')) {
+                        this.currentInput = this.currentInput.slice(1);
+                    } else {
+                        this.currentInput = '-' + this.currentInput;
+                    }
+                    this.updateDisplay();
+                }
+            }
 
-  void _onClear() {
-    setState(() {
-      _display = '0';
-      _prevNumber = '';
-      _operator = '';
-      _shouldResetDisplay = false;
-    });
-  }
+            backspace() {
+                if (this.shouldResetInput) return;
+                if (this.currentInput.length > 1) {
+                    this.currentInput = this.currentInput.slice(0, -1);
+                    if (this.currentInput === '-') this.currentInput = '0';
+                } else {
+                    this.currentInput = '0';
+                }
+                this.updateDisplay();
+            }
 
-  void _clearHistory() {
-    setState(() {
-      _history.clear();
-    });
-  }
+            setOperator(op) {
+                if (this.operator && !this.shouldResetInput) {
+                    this.calculate(false);
+                }
+                this.prevInput = this.currentInput;
+                this.operator = op;
+                this.shouldResetInput = true;
+            }
 
-  @override
-  Widget build(BuildContext context) {
-    final Color cyanColor = const Color(0xFF00A4B8);
+            calculate(isEqualsPressed = true) {
+                if (!this.operator || this.prevInput === null) return;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 1. 計算履歴リスト (テープ表示)
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: _history.length,
-                itemBuilder: (context, index) {
-                  final item = _history[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${item.expression} =',
-                          style: const TextStyle(fontSize: 22, color: Colors.white),
-                        ),
-                        Text(
-                          _formatter.format(item.result),
-                          style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+                const n1 = parseFloat(this.unformatNum(this.prevInput));
+                const n2 = parseFloat(this.unformatNum(this.currentInput));
+                let res = 0;
 
-            // 2. 合計表示バー
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: const Color(0xFF111111),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onLongPress: _clearHistory,
-                    child: const Text('合計', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                  ),
-                  Text(
-                    '${_formatter.format(_totalSum)} >',
-                    style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
+                switch (this.operator) {
+                    case '+': res = n1 + n2; break;
+                    case '-': res = n1 - n2; break;
+                    case '×': res = n1 * n2; break;
+                    case '÷': res = n2 !== 0 ? n1 / n2 : 0; break;
+                }
 
-            // 3. キーパッド
-            Container(
-              color: const Color(0xFF222222),
-              child: GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 4,
-                childAspectRatio: 1.2,
-                crossAxisSpacing: 1,
-                mainAxisSpacing: 1,
-                children: [
-                  _btn('AC', Colors.black, Colors.white, _onClear),
-                  _btn('::: ', Colors.black, Colors.white, () {}),
-                  _btn('∨', Colors.black, Colors.white, () {}),
-                  _btn('÷', cyanColor, Colors.white, () => _onOperatorTap('÷')),
+                // 浮動小数点誤差対策
+                res = Math.round(res * 1e10) / 1e10;
 
-                  _btn('7', const Color(0xFF151515), Colors.white, () => _onNumberTap('7')),
-                  _btn('8', const Color(0xFF151515), Colors.white, () => _onNumberTap('8')),
-                  _btn('9', const Color(0xFF151515), Colors.white, () => _onNumberTap('9')),
-                  _btn('×', cyanColor, Colors.white, () => _onOperatorTap('×')),
+                const expStr = `${this.formatNum(n1)} ${this.operator} ${this.formatNum(n2)}`;
+                
+                this.addTapeItem(expStr, res);
+                this.currentInput = res.toString();
+                this.updateDisplay();
 
-                  _btn('4', const Color(0xFF151515), Colors.white, () => _onNumberTap('4')),
-                  _btn('5', const Color(0xFF151515), Colors.white, () => _onNumberTap('5')),
-                  _btn('6', const Color(0xFF151515), Colors.white, () => _onNumberTap('6')),
-                  _btn('-', cyanColor, Colors.white, () => _onOperatorTap('-')),
+                if (isEqualsPressed) {
+                    this.operator = null;
+                    this.prevInput = null;
+                } else {
+                    this.prevInput = res.toString();
+                }
+                this.shouldResetInput = true;
+            }
 
-                  _btn('1', const Color(0xFF151515), Colors.white, () => _onNumberTap('1')),
-                  _btn('2', const Color(0xFF151515), Colors.white, () => _onNumberTap('2')),
-                  _btn('3', const Color(0xFF151515), Colors.white, () => _onNumberTap('3')),
-                  _btn('+', cyanColor, Colors.white, () => _onOperatorTap('+')),
+            addTapeItem(expression, result) {
+                this.tapeHistory.push(result);
+                
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex justify-between items-center text-xl font-normal py-1 border-b border-gray-900/50 cursor-pointer hover:bg-gray-900/40 px-1 rounded transition-colors';
+                itemEl.onclick = () => {
+                    this.currentInput = result.toString();
+                    this.shouldResetInput = true;
+                    this.updateDisplay();
+                };
 
-                  _btn('0', const Color(0xFF151515), Colors.white, () => _onNumberTap('0')),
-                  _btn('.', const Color(0xFF151515), Colors.white, () => _onNumberTap('.')),
-                  _btn('+/-', const Color(0xFF151515), Colors.white, () {}),
-                  _btn('=', cyanColor, Colors.white, _onCalculate),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                itemEl.innerHTML = `
+                    <span class="text-gray-200">${expression} =</span>
+                    <span class="text-white font-semibold">${this.formatNum(result)}</span>
+                `;
 
-  Widget _btn(String label, Color bg, Color textClr, VoidCallback onTap) {
-    return Material(
-      color: bg,
-      child: InkWell(
-        onTap: onTap,
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 24, color: textClr, fontWeight: FontWeight.w400),
-          ),
-        ),
-      ),
-    );
-  }
-}
+                this.tapeListEl.appendChild(itemEl);
+                this.updateGrandTotal();
+                
+                // スクロールを一番下へ
+                setTimeout(() => {
+                    this.tapeContainerEl.scrollTop = this.tapeContainerEl.scrollHeight;
+                }, 50);
+            }
+
+            updateGrandTotal() {
+                const total = this.tapeHistory.reduce((acc, curr) => acc + curr, 0);
+                const roundedTotal = Math.round(total * 1e10) / 1e10;
+                this.grandTotalEl.textContent = this.formatNum(roundedTotal);
+            }
+
+            clear() {
+                this.currentInput = '0';
+                this.prevInput = null;
+                this.operator = null;
+                this.shouldResetInput = false;
+                this.updateDisplay();
+            }
+
+            clearTape() {
+                this.tapeHistory = [];
+                this.tapeListEl.innerHTML = '';
+                this.updateGrandTotal();
+            }
+
+            copyTotal() {
+                const totalStr = this.grandTotalEl.textContent;
+                navigator.clipboard.writeText(totalStr);
+            }
+
+            initKeyboard() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.key >= '0' && e.key <= '9') this.appendNum(e.key);
+                    if (e.key === '.') this.appendDot();
+                    if (e.key === '+') this.setOperator('+');
+                    if (e.key === '-') this.setOperator('-');
+                    if (e.key === '*') this.setOperator('×');
+                    if (e.key === '/') { e.preventDefault(); this.setOperator('÷'); }
+                    if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); this.calculate(); }
+                    if (e.key === 'Backspace') this.backspace();
+                    if (e.key === 'Escape') this.clear();
+                });
+            }
+        }
+
+        const tapeCalc = new TapeCalculator();
+    </script>
+</body>
+</html>
