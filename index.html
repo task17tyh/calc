@@ -263,4 +263,59 @@
                     this.updateDisplay();
                 };
 
-                itemEl.innerHTML =
+                itemEl.innerHTML = `
+                    <span class="opacity-80">${expression} =</span>
+                    <span class="font-semibold">${this.formatNum(result)}</span>
+                `;
+
+                this.tapeListEl.appendChild(itemEl);
+                this.updateGrandTotal();
+                
+                setTimeout(() => {
+                    this.tapeContainerEl.scrollTop = this.tapeContainerEl.scrollHeight;
+                }, 50);
+            }
+
+            updateGrandTotal() {
+                const total = this.tapeHistory.reduce((acc, curr) => acc + curr, 0);
+                const roundedTotal = Math.round(total * 1e10) / 1e10;
+                this.grandTotalEl.textContent = this.formatNum(roundedTotal);
+            }
+
+            clear() {
+                this.currentInput = '0';
+                this.prevInput = null;
+                this.operator = null;
+                this.shouldResetInput = false;
+                this.updateDisplay();
+            }
+
+            clearTape() {
+                this.tapeHistory = [];
+                this.tapeListEl.innerHTML = '';
+                this.updateGrandTotal();
+            }
+
+            copyTotal() {
+                navigator.clipboard.writeText(this.grandTotalEl.textContent);
+            }
+
+            initKeyboard() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.key >= '0' && e.key <= '9') this.appendNum(e.key);
+                    if (e.key === '.') this.appendDot();
+                    if (e.key === '+') this.setOperator('+');
+                    if (e.key === '-') this.setOperator('-');
+                    if (e.key === '*') this.setOperator('×');
+                    if (e.key === '/') { e.preventDefault(); this.setOperator('÷'); }
+                    if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); this.calculate(); }
+                    if (e.key === 'Backspace') this.backspace();
+                    if (e.key === 'Escape') this.clear();
+                });
+            }
+        }
+
+        const tapeCalc = new TapeCalculator();
+    </script>
+</body>
+</html>
