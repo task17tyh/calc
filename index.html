@@ -83,7 +83,7 @@
     <div class="flex-none border-t" style="border-color: var(--border-color); padding-bottom: max(0.25rem, env(safe-area-inset-bottom));">
         <!-- 2. Display / 合計表示エリア -->
         <div class="area-display px-4 py-3 border-b flex flex-col space-y-1">
-            <!-- 入力中の計算式（1 + 2 + 3 など）を表示する領域 -->
+            <!-- 入力中の計算式を表示する領域 -->
             <div id="expression-display" class="text-right text-sm text-gray-400 tracking-wide h-5 overflow-x-auto no-scrollbar"></div>
             <!-- 現在の数値入力・計算結果領域 -->
             <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[40px] overflow-x-auto no-scrollbar">0</div>
@@ -132,7 +132,7 @@
         class TapeCalculator {
             constructor() {
                 this.currentInput = '0';
-                this.expressionParts = []; // 途中式を保持する配列 (例: ['1', '+', '2', '+'])
+                this.formula = []; // 入力された数値と演算子の履歴配列
                 this.shouldResetInput = false;
                 this.tapeHistory = [];
                 
@@ -159,18 +159,21 @@
             updateDisplay() {
                 this.currentInputEl.textContent = this.formatNum(this.currentInput);
                 
-                // 途中式（例: 1 + 2 + 3）の更新
-                let exprString = this.expressionParts.map(part => {
-                    return (part === '+' || part === '-' || part === '×' || part === '÷') 
-                        ? part 
-                        : this.formatNum(part);
-                }).join(' ');
-
-                if (!this.shouldResetInput && this.expressionParts.length > 0) {
-                    exprString += ` ${this.formatNum(this.currentInput)}`;
+                // 途中式（例: 1 + 2 + 3）を組み立てて上部に表示
+                let text = '';
+                for (let item of this.formula) {
+                    if (['+', '-', '×', '÷'].includes(item)) {
+                        text += ` ${item} `;
+                    } else {
+                        text += this.formatNum(item);
+                    }
                 }
-
-                this.expressionDisplayEl.textContent = exprString;
+                if (!this.shouldResetInput || this.formula.length === 0) {
+                    if (this.formula.length > 0 && ['+', '-', '×', '÷'].includes(this.formula[this.formula.length - 1])) {
+                        text += this.formatNum(this.currentInput);
+                    }
+                }
+                this.expressionDisplayEl.textContent = text;
             }
 
             appendNum(num) {
@@ -214,61 +217,47 @@
             }
 
             setOperator(op) {
-                // 演算子が連続で押された場合は、最後の演算子を付け替える
-                if (this.shouldResetInput && this.expressionParts.length > 0) {
-                    this.expressionParts[this.expressionParts.length - 1] = op;
+                if (this.shouldResetInput && this.formula.length > 0 && ['+', '-', '×', '÷'].includes(this.formula[this.formula.length - 1])) {
+                    // 演算子が連続入力された場合は最後の演算子を付け替える
+                    this.formula[this.formula.length - 1] = op;
                 } else {
-                    this.expressionParts.push(this.currentInput);
-                    this.expressionParts.push(op);
+                    this.formula.push(this.currentInput);
+                    this.formula.push(op);
                 }
                 this.shouldResetInput = true;
                 this.updateDisplay();
             }
 
             calculate() {
-                if (this.expressionParts.length === 0) return;
+                if (this.formula.length === 0) return;
 
-                // 最後の数値を追加して式を完成させる
-                this.expressionParts.push(this.currentInput);
+                // 最後の数値要素を追加
+                this.formula.push(this.currentInput);
 
-                // 計算用の式文字列を生成（× ➔ *, ÷ ➔ /）
-                const rawExpression = this.expressionParts.join(' ')
-                    .replace(/,/g, '')
-                    .replace(/×/g, '*')
-                    .replace(/÷/g, '/');
+                // 表示用の計算式文字列
+                const fullExpressionStr = this.formula.map(item => {
+                    return ['+', '-', '×', '÷'].includes(item) ? item : this.formatNum(item);
+                }).join(' ');
 
-                let res = 0;
-                try {
-                    // 左から順に計算を評価
-                    const tokens = rawExpression.split(' ');
-                    res = parseFloat(tokens[0]);
-                    for (let i = 1; i < tokens.length; i += 2) {
-                        const operator = tokens[i];
-                        const nextNum = parseFloat(tokens[i + 1]);
-                        if (operator === '+') res += nextNum;
-                        else if (operator === '-') res -= nextNum;
-                        else if (operator === '*') res *= nextNum;
-                        else if (operator === '/') res = nextNum !== 0 ? res / nextNum : 0;
-                    }
-                } catch (e) {
-                    res = 0;
+                // 順次計算処理（左から順に評価）
+                let res = parseFloat(this.unformatNum(this.formula[0]));
+                for (let i = 1; i < this.formula.length; i += 2) {
+                    const op = this.formula[i];
+                    const nextVal = parseFloat(this.unformatNum(this.formula[i + 1]));
+                    if (op === '+') res += nextVal;
+                    else if (op === '-') res -= nextVal;
+                    else if (op === '×') res *= nextVal;
+                    else if (op === '÷') res = nextVal !== 0 ? res / nextVal : 0;
                 }
 
                 res = Math.round(res * 1e10) / 1e10;
 
-                // 表示用の式文字列（例: 1 + 2 + 3）
-                const formattedExpression = this.expressionParts.map(part => {
-                    return (part === '+' || part === '-' || part === '×' || part === '÷')
-                        ? part
-                        : this.formatNum(part);
-                }).join(' ');
+                // 履歴（テープ）に追加
+                this.addTapeItem(fullExpressionStr, res);
 
-                // 履歴（テープ）に途中式ごと追加
-                this.addTapeItem(formattedExpression, res);
-
-                // 状態のクリアと結果のセット
+                // 状態リセット
                 this.currentInput = res.toString();
-                this.expressionParts = [];
+                this.formula = [];
                 this.shouldResetInput = true;
                 this.updateDisplay();
             }
@@ -305,7 +294,7 @@
 
             clear() {
                 this.currentInput = '0';
-                this.expressionParts = [];
+                this.formula = [];
                 this.shouldResetInput = false;
                 this.updateDisplay();
             }
