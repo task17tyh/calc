@@ -10,104 +10,121 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
-    /* デフォルト（ライトモード）の色定義 */
-    :root {
-        --bg-main: #f3f4f6;
-        --text-main: #111827;
-        --bg-tape: #ffffff;
-        --bg-display: #e5e7eb;
-        --bg-key-num: #ffffff;
-        --text-key-num: #111827;
-        --bg-key-op: #00a4b8;
-        --border-color: #d1d5db;
-    }
-
-    /* スマホがダークモードの場合に適用される色定義 */
-    @media (prefers-color-scheme: dark) {
+        /* デフォルト（ライトモード）の色定義 */
         :root {
-            --bg-main: #000000;
-            --text-main: #ffffff;
-            --bg-tape: #000000;
-            --bg-display: #111111;
-            --bg-key-num: #141414;
-            --text-key-num: #ffffff;
+            --bg-main: #f3f4f6;
+            --text-main: #111827;
+            --bg-tape: #ffffff;
+            --bg-display: #e5e7eb;
+            --text-display: #111827;
+            --bg-key-num: #ffffff;
+            --text-key-num: #111827;
+            --bg-key-fn: #e5e7eb;
+            --text-key-fn: #111827;
             --bg-key-op: #00a4b8;
-            --border-color: #222222;
+            --text-key-op: #ffffff;
+            --border-color: #d1d5db;
+            --grid-bg: #d1d5db;
         }
-    }
 
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: var(--bg-main);
-        color: var(--text-main);
-        overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-    }
-    .key-active:active { filter: brightness(1.3); }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
+        /* スマホがダークモードの場合に適用される色定義 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-main: #000000;
+                --text-main: #ffffff;
+                --bg-tape: #000000;
+                --bg-display: #111111;
+                --text-display: #d1d5db;
+                --bg-key-num: #141414;
+                --text-key-num: #ffffff;
+                --bg-key-fn: #000000;
+                --text-key-fn: #ffffff;
+                --bg-key-op: #00a4b8;
+                --text-key-op: #ffffff;
+                --border-color: #222222;
+                --grid-bg: #222222;
+            }
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .key-active:active { filter: brightness(1.3); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* スタイル連動クラス */
+        .btn-num { background-color: var(--bg-key-num); color: var(--text-key-num); }
+        .btn-fn { background-color: var(--bg-key-fn); color: var(--text-key-fn); }
+        .btn-op { background-color: var(--bg-key-op); color: var(--text-key-op); }
+        .area-display { background-color: var(--bg-display); border-color: var(--border-color); }
+        .area-grid { background-color: var(--grid-bg); }
+        .text-disp { color: var(--text-display); }
+    </style>
 </head>
-
-<body class="flex flex-col justify-between max-w-md mx-auto relative text-white h-screen pb-20">
+<body class="flex flex-col justify-between max-w-md mx-auto relative h-screen">
 
     <!-- 1. 計算履歴 (テープエリア) -->
     <div id="tape-container" class="flex-1 overflow-y-auto p-4 flex flex-col justify-start space-y-3 min-h-0 overscroll-contain touch-pan-y">
         <div id="tape-list" class="flex flex-col space-y-2"></div>
     </div>
 
-    <!-- キーパッドとディスプレイの固定コンテナ（下部に大きな固定余白pb-10を設定） -->
-    <div class="flex-none bg-black pb-10 border-t border-[#222]">
+    <!-- キーパッドとディスプレイの固定コンテナ -->
+    <div class="flex-none pb-4 border-t" style="border-color: var(--border-color);">
         <!-- 2. Display / 合計表示エリア -->
-        <div class="bg-[#111] px-4 py-3 border-b border-[#222] flex flex-col space-y-1">
-            <div id="current-input" class="text-right text-3xl font-light text-gray-300 tracking-wide min-h-[40px] overflow-x-auto no-scrollbar">0</div>
-            <div class="flex justify-between items-center text-gray-400 pt-1 border-t border-[#222]">
+        <div class="area-display px-4 py-3 border-b flex flex-col space-y-1">
+            <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[40px] overflow-x-auto no-scrollbar">0</div>
+            <div class="flex justify-between items-center opacity-70 pt-1 border-t" style="border-color: var(--border-color);">
                 <span class="text-sm font-medium">合計</span>
                 <div class="flex items-center space-x-1 cursor-pointer" onclick="tapeCalc.copyTotal()">
-                    <span id="grand-total" class="text-xl font-bold text-white tracking-wide">0</span>
-                    <span class="text-gray-500 text-sm">›</span>
+                    <span id="grand-total" class="text-xl font-bold tracking-wide">0</span>
+                    <span class="text-sm opacity-50">›</span>
                 </div>
             </div>
         </div>
 
         <!-- 3. キーパッド -->
-        <div class="grid grid-cols-4 gap-[1px] bg-[#222]">
-            <button onclick="tapeCalc.clear()" class="bg-black text-white text-2xl h-14 flex items-center justify-center key-active font-normal">AC</button>
-            <button onclick="tapeCalc.clearTape()" class="bg-black text-white text-xl h-14 flex items-center justify-center key-active font-normal">
+        <div class="grid grid-cols-4 gap-[1px] area-grid">
+            <button onclick="tapeCalc.clear()" class="btn-fn text-2xl h-14 flex items-center justify-center key-active font-normal">AC</button>
+            <button onclick="tapeCalc.clearTape()" class="btn-fn text-xl h-14 flex items-center justify-center key-active font-normal">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
-            <button onclick="tapeCalc.backspace()" class="bg-black text-white text-xl h-14 flex items-center justify-center key-active font-normal">⌫</button>
-            <button onclick="tapeCalc.setOperator('÷')" class="bg-[#00a4b8] text-white text-3xl h-14 flex items-center justify-center key-active font-normal">÷</button>
+            <button onclick="tapeCalc.backspace()" class="btn-fn text-xl h-14 flex items-center justify-center key-active font-normal">⌫</button>
+            <button onclick="tapeCalc.setOperator('÷')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">÷</button>
 
-            <button onclick="tapeCalc.appendNum('7')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">7</button>
-            <button onclick="tapeCalc.appendNum('8')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">8</button>
-            <button onclick="tapeCalc.appendNum('9')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">9</button>
-            <button onclick="tapeCalc.setOperator('×')" class="bg-[#00a4b8] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">×</button>
+            <button onclick="tapeCalc.appendNum('7')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">7</button>
+            <button onclick="tapeCalc.appendNum('8')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">8</button>
+            <button onclick="tapeCalc.appendNum('9')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">9</button>
+            <button onclick="tapeCalc.setOperator('×')" class="btn-op text-2xl h-14 flex items-center justify-center key-active font-normal">×</button>
 
-            <button onclick="tapeCalc.appendNum('4')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">4</button>
-            <button onclick="tapeCalc.appendNum('5')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">5</button>
-            <button onclick="tapeCalc.appendNum('6')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">6</button>
-            <button onclick="tapeCalc.setOperator('-')" class="bg-[#00a4b8] text-white text-3xl h-14 flex items-center justify-center key-active font-normal">-</button>
+            <button onclick="tapeCalc.appendNum('4')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">4</button>
+            <button onclick="tapeCalc.appendNum('5')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">5</button>
+            <button onclick="tapeCalc.appendNum('6')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">6</button>
+            <button onclick="tapeCalc.setOperator('-')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">-</button>
 
-            <button onclick="tapeCalc.appendNum('1')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">1</button>
-            <button onclick="tapeCalc.appendNum('2')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">2</button>
-            <button onclick="tapeCalc.appendNum('3')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">3</button>
-            <button onclick="tapeCalc.setOperator('+')" class="bg-[#00a4b8] text-white text-3xl h-14 flex items-center justify-center key-active font-normal">+</button>
+            <button onclick="tapeCalc.appendNum('1')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">1</button>
+            <button onclick="tapeCalc.appendNum('2')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">2</button>
+            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">3</button>
+            <button onclick="tapeCalc.setOperator('+')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">+</button>
 
-            <button onclick="tapeCalc.appendNum('0')" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">0</button>
-            <button onclick="tapeCalc.appendDot()" class="bg-[#141414] text-white text-2xl h-14 flex items-center justify-center key-active font-normal">.</button>
-            <button onclick="tapeCalc.toggleSign()" class="bg-[#141414] text-white text-xl h-14 flex items-center justify-center key-active font-normal">⁺/₋</button>
-            <button onclick="tapeCalc.calculate()" class="bg-[#00a4b8] text-white text-3xl h-14 flex items-center justify-center key-active font-normal">=</button>
+            <button onclick="tapeCalc.appendNum('0')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">0</button>
+            <button onclick="tapeCalc.appendDot()" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">.</button>
+            <button onclick="tapeCalc.toggleSign()" class="btn-num text-xl h-14 flex items-center justify-center key-active font-normal">⁺/₋</button>
+            <button onclick="tapeCalc.calculate()" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">=</button>
         </div>
     </div>
 
+    <!-- 4. JavaScript制御 -->
     <script>
         class TapeCalculator {
             constructor() {
@@ -222,7 +239,8 @@
             addTapeItem(expression, result) {
                 this.tapeHistory.push(result);
                 const itemEl = document.createElement('div');
-                itemEl.className = 'flex justify-between items-center text-xl font-normal py-1 border-b border-gray-900/50 cursor-pointer hover:bg-gray-900/40 px-1 rounded transition-colors';
+                itemEl.className = 'flex justify-between items-center text-xl font-normal py-1 border-b opacity-90 cursor-pointer px-1 rounded transition-colors';
+                itemEl.style.borderColor = 'var(--border-color)';
                 itemEl.onclick = () => {
                     this.currentInput = result.toString();
                     this.shouldResetInput = true;
@@ -230,8 +248,8 @@
                 };
 
                 itemEl.innerHTML = `
-                    <span class="text-gray-200">${expression} =</span>
-                    <span class="text-white font-semibold">${this.formatNum(result)}</span>
+                    <span class="opacity-80">${expression} =</span>
+                    <span class="font-semibold">${this.formatNum(result)}</span>
                 `;
 
                 this.tapeListEl.appendChild(itemEl);
