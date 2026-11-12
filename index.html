@@ -11,21 +11,48 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
+    /* デフォルト（ライトモード）の色定義 */
+    :root {
+        --bg-main: #f3f4f6;
+        --text-main: #111827;
+        --bg-tape: #ffffff;
+        --bg-display: #e5e7eb;
+        --bg-key-num: #ffffff;
+        --text-key-num: #111827;
+        --bg-key-op: #00a4b8;
+        --border-color: #d1d5db;
+    }
+
+    /* スマホがダークモードの場合に適用される色定義 */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg-main: #000000;
+            --text-main: #ffffff;
+            --bg-tape: #000000;
+            --bg-display: #111111;
+            --bg-key-num: #141414;
+            --text-key-num: #ffffff;
+            --bg-key-op: #00a4b8;
+            --border-color: #222222;
         }
-        .key-active:active { filter: brightness(1.4); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+    }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
+    .key-active:active { filter: brightness(1.3); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 </head>
 
 <body class="flex flex-col justify-between max-w-md mx-auto relative text-white h-screen pb-5">
