@@ -1,6 +1,6 @@
 {
-  "name": "テープ電卓",
-  "short_name": "テープ電卓",
+  "name": "α電卓",
+  "short_name": "α電卓",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
