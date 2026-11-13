@@ -26,6 +26,7 @@
             --border-color: #222222;
             --grid-bg: #222222;
             --modal-bg: #1c1c1e;
+            --display-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
         }
 
         /* テーマ：ライト */
@@ -43,9 +44,10 @@
             --border-color: #d1d5db;
             --grid-bg: #d1d5db;
             --modal-bg: #ffffff;
+            --display-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
         }
 
-        /* テーマ：昭和レトロ (液晶風グリーン) */
+        /* テーマ：昭和レトロ (液晶風グリーン & デジタルフォント) */
         [data-theme="retro"] {
             --bg-main: #1d2b1f;
             --text-main: #85d68d;
@@ -60,9 +62,10 @@
             --border-color: #314d34;
             --grid-bg: #314d34;
             --modal-bg: #233425;
+            --display-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
         }
 
-        /* テーマ：サイバーパンク */
+        /* テーマ：サイバーパンク & デジタルフォント */
         [data-theme="cyber"] {
             --bg-main: #0d0221;
             --text-main: #00f0ff;
@@ -77,6 +80,7 @@
             --border-color: #ff007f;
             --grid-bg: #3b1373;
             --modal-bg: #1a0836;
+            --display-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
         }
 
         html, body {
@@ -101,6 +105,9 @@
         .area-display { background-color: var(--bg-display); border-color: var(--border-color); }
         .area-grid { background-color: var(--grid-bg); }
         .text-disp { color: var(--text-display); }
+
+        /* デジタルフォント適用用スタイル */
+        .digital-font { font-family: var(--display-font); letter-spacing: 0.05em; }
 
         .tape-size-sm .tape-item { font-size: 0.875rem; line-height: 1.25rem; }
         .tape-size-md .tape-item { font-size: 1.125rem; line-height: 1.75rem; }
@@ -145,12 +152,12 @@
     <div class="flex-none border-t" style="border-color: var(--border-color); padding-bottom: max(0.25rem, env(safe-area-inset-bottom));">
         <!-- 2. Display / 合計表示エリア -->
         <div class="area-display px-4 py-2 border-b flex flex-col space-y-1">
-            <div id="expression-display" class="text-right text-sm tracking-wide h-5 overflow-x-auto no-scrollbar expr-color-muted"></div>
-            <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[38px] overflow-x-auto no-scrollbar">0</div>
+            <div id="expression-display" class="text-right text-sm tracking-wide h-5 overflow-x-auto no-scrollbar expr-color-muted digital-font"></div>
+            <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[38px] overflow-x-auto no-scrollbar digital-font">0</div>
             <div class="flex justify-between items-center opacity-70 pt-1 border-t" style="border-color: var(--border-color);">
                 <span class="text-sm font-medium">合計</span>
                 <div class="flex items-center space-x-1 cursor-pointer" onclick="tapeCalc.copyTotal()">
-                    <span id="grand-total" class="text-xl font-bold tracking-wide">0</span>
+                    <span id="grand-total" class="text-xl font-bold tracking-wide digital-font">0</span>
                     <span class="text-sm opacity-50">›</span>
                 </div>
             </div>
@@ -204,7 +211,7 @@
             <h3 class="font-bold text-lg border-b pb-2" style="border-color: var(--border-color);">👥 割り勘計算</h3>
             <div class="flex items-center justify-between">
                 <span class="text-sm font-medium opacity-80">対象金額:</span>
-                <span id="split-target-amount" class="text-lg font-bold">0円</span>
+                <span id="split-target-amount" class="text-lg font-bold digital-font">0円</span>
             </div>
             <div class="flex items-center justify-between">
                 <span class="text-sm font-medium opacity-80">人数:</span>
@@ -217,11 +224,11 @@
             <div class="bg-gray-500/10 p-3 rounded-xl flex flex-col space-y-1">
                 <div class="flex justify-between items-center text-sm">
                     <span class="opacity-80">1人あたり:</span>
-                    <span id="split-per-person" class="text-lg font-bold text-[#00a4b8]">0円</span>
+                    <span id="split-per-person" class="text-lg font-bold text-[#00a4b8] digital-font">0円</span>
                 </div>
                 <div class="flex justify-between items-center text-xs opacity-60">
                     <span>あまり（端数）:</span>
-                    <span id="split-remainder">0円</span>
+                    <span id="split-remainder" class="digital-font">0円</span>
                 </div>
             </div>
             <button onclick="tapeCalc.closeSplitBill()" class="w-full py-2 bg-[#00a4b8] text-white font-bold rounded-xl">閉じる</button>
@@ -653,9 +660,9 @@
 
                 itemEl.innerHTML = `
                     <div class="flex justify-between items-center cursor-pointer" onclick="tapeCalc.useTapeResult(${item.result})">
-                        <span class="opacity-80">${item.expression} =</span>
+                        <span class="opacity-80 digital-font">${item.expression} =</span>
                         <div class="flex items-center space-x-2">
-                            <span class="font-semibold">${this.formatNum(item.result)}</span>
+                            <span class="font-semibold digital-font">${this.formatNum(item.result)}</span>
                             <button onclick="event.stopPropagation(); tapeCalc.addNote(${item.id})" class="text-xs opacity-50 hover:opacity-100 p-1" title="メモ追加">📝</button>
                             <button onclick="event.stopPropagation(); tapeCalc.deleteTapeItem(${item.id})" class="text-xs text-red-400 opacity-60 hover:opacity-100 p-1" title="削除">✕</button>
                         </div>
