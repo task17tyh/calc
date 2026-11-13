@@ -70,12 +70,27 @@
         .area-display { background-color: var(--bg-display); border-color: var(--border-color); }
         .area-grid { background-color: var(--grid-bg); }
         .text-disp { color: var(--text-display); }
+
+        /* 文字サイズ切替用クラス */
+        .tape-size-sm .tape-item { font-size: 0.875rem; /* 14px */ line-height: 1.25rem; }
+        .tape-size-md .tape-item { font-size: 1.125rem; /* 18px */ line-height: 1.75rem; }
+        .tape-size-lg .tape-item { font-size: 1.5rem;   /* 24px */ line-height: 2rem; }
     </style>
 </head>
 <body class="flex flex-col justify-between w-full relative h-screen">
 
+    <!-- 0. コントロールバー（文字サイズ変更ボタン） -->
+    <div class="flex-none p-2 border-b flex justify-between items-center opacity-80" style="border-color: var(--border-color);">
+        <span class="text-xs font-medium px-2 opacity-60">履歴サイズ</span>
+        <div class="flex space-x-1 bg-gray-500/10 p-1 rounded-lg">
+            <button onclick="tapeCalc.setFontSize('sm')" id="btn-size-sm" class="px-3 py-1 text-xs rounded transition-colors">小</button>
+            <button onclick="tapeCalc.setFontSize('md')" id="btn-size-md" class="px-3 py-1 text-xs rounded transition-colors">中</button>
+            <button onclick="tapeCalc.setFontSize('lg')" id="btn-size-lg" class="px-3 py-1 text-xs rounded transition-colors">大</button>
+        </div>
+    </div>
+
     <!-- 1. 計算履歴 (テープエリア) -->
-    <div id="tape-container" class="flex-1 overflow-y-auto p-4 flex flex-col justify-start space-y-3 min-h-0 overscroll-contain touch-pan-y">
+    <div id="tape-container" class="flex-1 overflow-y-auto p-4 flex flex-col justify-start space-y-3 min-h-0 overscroll-contain touch-pan-y tape-size-md">
         <div id="tape-list" class="flex flex-col space-y-2"></div>
     </div>
 
@@ -132,9 +147,10 @@
         class TapeCalculator {
             constructor() {
                 this.currentInput = '0';
-                this.formula = []; // 入力された数値と演算子の履歴配列
+                this.formula = [];
                 this.shouldResetInput = false;
                 this.tapeHistory = [];
+                this.currentFontSize = localStorage.getItem('calc_font_size') || 'md';
                 
                 this.expressionDisplayEl = document.getElementById('expression-display');
                 this.currentInputEl = document.getElementById('current-input');
@@ -142,7 +158,29 @@
                 this.grandTotalEl = document.getElementById('grand-total');
                 this.tapeContainerEl = document.getElementById('tape-container');
 
+                this.initFontSize();
                 this.initKeyboard();
+            }
+
+            initFontSize() {
+                this.setFontSize(this.currentFontSize);
+            }
+
+            setFontSize(size) {
+                this.currentFontSize = size;
+                localStorage.setItem('calc_font_size', size);
+                
+                this.tapeContainerEl.classList.remove('tape-size-sm', 'tape-size-md', 'tape-size-lg');
+                this.tapeContainerEl.classList.add(`tape-size-${size}`);
+
+                ['sm', 'md', 'lg'].forEach(s => {
+                    const btn = document.getElementById(`btn-size-${s}`);
+                    if (s === size) {
+                        btn.className = 'px-3 py-1 text-xs rounded transition-colors bg-[#00a4b8] text-white font-bold';
+                    } else {
+                        btn.className = 'px-3 py-1 text-xs rounded transition-colors opacity-60 hover:opacity-100';
+                    }
+                });
             }
 
             formatNum(numStr) {
@@ -159,7 +197,6 @@
             updateDisplay() {
                 this.currentInputEl.textContent = this.formatNum(this.currentInput);
                 
-                // 途中式（例: 1 + 2 + 3）を組み立てて上部に表示
                 let text = '';
                 for (let item of this.formula) {
                     if (['+', '-', '×', '÷'].includes(item)) {
@@ -218,7 +255,6 @@
 
             setOperator(op) {
                 if (this.shouldResetInput && this.formula.length > 0 && ['+', '-', '×', '÷'].includes(this.formula[this.formula.length - 1])) {
-                    // 演算子が連続入力された場合は最後の演算子を付け替える
                     this.formula[this.formula.length - 1] = op;
                 } else {
                     this.formula.push(this.currentInput);
@@ -231,15 +267,12 @@
             calculate() {
                 if (this.formula.length === 0) return;
 
-                // 最後の数値要素を追加
                 this.formula.push(this.currentInput);
 
-                // 表示用の計算式文字列
                 const fullExpressionStr = this.formula.map(item => {
                     return ['+', '-', '×', '÷'].includes(item) ? item : this.formatNum(item);
                 }).join(' ');
 
-                // 順次計算処理（左から順に評価）
                 let res = parseFloat(this.unformatNum(this.formula[0]));
                 for (let i = 1; i < this.formula.length; i += 2) {
                     const op = this.formula[i];
@@ -252,10 +285,8 @@
 
                 res = Math.round(res * 1e10) / 1e10;
 
-                // 履歴（テープ）に追加
                 this.addTapeItem(fullExpressionStr, res);
 
-                // 状態リセット
                 this.currentInput = res.toString();
                 this.formula = [];
                 this.shouldResetInput = true;
@@ -265,7 +296,7 @@
             addTapeItem(expression, result) {
                 this.tapeHistory.push(result);
                 const itemEl = document.createElement('div');
-                itemEl.className = 'flex justify-between items-center text-xl font-normal py-1 border-b opacity-90 cursor-pointer px-1 rounded transition-colors';
+                itemEl.className = 'tape-item flex justify-between items-center font-normal py-1 border-b opacity-90 cursor-pointer px-1 rounded transition-colors';
                 itemEl.style.borderColor = 'var(--border-color)';
                 itemEl.onclick = () => {
                     this.currentInput = result.toString();
