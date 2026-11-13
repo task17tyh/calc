@@ -11,11 +11,27 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* デフォルト（ライトモード）の色定義 */
+        /* デフォルト（ダークモード） */
         :root {
+            --bg-main: #000000;
+            --text-main: #ffffff;
+            --bg-display: #111111;
+            --text-display: #d1d5db;
+            --bg-key-num: #141414;
+            --text-key-num: #ffffff;
+            --bg-key-fn: #000000;
+            --text-key-fn: #ffffff;
+            --bg-key-op: #00a4b8;
+            --text-key-op: #ffffff;
+            --border-color: #222222;
+            --grid-bg: #222222;
+            --modal-bg: #1c1c1e;
+        }
+
+        /* テーマ：ライト */
+        [data-theme="light"] {
             --bg-main: #f3f4f6;
             --text-main: #111827;
-            --bg-tape: #ffffff;
             --bg-display: #e5e7eb;
             --text-display: #111827;
             --bg-key-num: #ffffff;
@@ -29,24 +45,38 @@
             --modal-bg: #ffffff;
         }
 
-        /* スマホがダークモードの場合に適用される色定義 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-main: #000000;
-                --text-main: #ffffff;
-                --bg-tape: #000000;
-                --bg-display: #111111;
-                --text-display: #d1d5db;
-                --bg-key-num: #141414;
-                --text-key-num: #ffffff;
-                --bg-key-fn: #000000;
-                --text-key-fn: #ffffff;
-                --bg-key-op: #00a4b8;
-                --text-key-op: #ffffff;
-                --border-color: #222222;
-                --grid-bg: #222222;
-                --modal-bg: #1c1c1e;
-            }
+        /* テーマ：昭和レトロ (液晶風グリーン) */
+        [data-theme="retro"] {
+            --bg-main: #1d2b1f;
+            --text-main: #85d68d;
+            --bg-display: #2d4231;
+            --text-display: #9bf4a3;
+            --bg-key-num: #233425;
+            --text-key-num: #85d68d;
+            --bg-key-fn: #182419;
+            --text-key-fn: #85d68d;
+            --bg-key-op: #38613d;
+            --text-key-op: #ffffff;
+            --border-color: #314d34;
+            --grid-bg: #314d34;
+            --modal-bg: #233425;
+        }
+
+        /* テーマ：サイバーパンク */
+        [data-theme="cyber"] {
+            --bg-main: #0d0221;
+            --text-main: #00f0ff;
+            --bg-display: #1a0836;
+            --text-display: #ff007f;
+            --bg-key-num: #150530;
+            --text-key-num: #00f0ff;
+            --bg-key-fn: #260c4d;
+            --text-key-fn: #ff007f;
+            --bg-key-op: #ff007f;
+            --text-key-op: #ffffff;
+            --border-color: #ff007f;
+            --grid-bg: #3b1373;
+            --modal-bg: #1a0836;
         }
 
         html, body {
@@ -65,7 +95,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* スタイル連動クラス */
         .btn-num { background-color: var(--bg-key-num); color: var(--text-key-num); }
         .btn-fn { background-color: var(--bg-key-fn); color: var(--text-key-fn); }
         .btn-op { background-color: var(--bg-key-op); color: var(--text-key-op); }
@@ -73,12 +102,10 @@
         .area-grid { background-color: var(--grid-bg); }
         .text-disp { color: var(--text-display); }
 
-        /* 文字サイズ切替用クラス */
         .tape-size-sm .tape-item { font-size: 0.875rem; line-height: 1.25rem; }
         .tape-size-md .tape-item { font-size: 1.125rem; line-height: 1.75rem; }
         .tape-size-lg .tape-item { font-size: 1.5rem;   line-height: 2rem; }
 
-        /* 途中式のカラー・濃さ切替クラス */
         .expr-color-muted { color: #9ca3af; font-weight: 400; }
         .expr-color-normal { color: var(--text-main); font-weight: 500; opacity: 0.9; }
         .expr-color-accent { color: #00a4b8; font-weight: 600; }
@@ -86,19 +113,24 @@
 </head>
 <body class="flex flex-col justify-between w-full relative h-screen">
 
-    <!-- アプリ内トースト通知（ドメイン名が表示されないカスタム通知） -->
+    <!-- トースト通知 -->
     <div id="toast-message" class="fixed top-12 left-1/2 -translate-x-1/2 bg-[#00a4b8] text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center space-x-1">
         <span id="toast-text">コピーしました</span>
     </div>
 
-    <!-- 0. 上部ヘッダー（コピー＆設定ボタン） -->
-    <div class="flex-none px-4 py-2 flex justify-between items-center border-b opacity-90" style="border-color: var(--border-color);">
-        <span class="text-sm font-semibold tracking-wide opacity-80">計算履歴</span>
-        <div class="flex items-center space-x-2">
-            <button onclick="tapeCalc.copyAllTape()" class="p-1.5 rounded-lg hover:bg-gray-500/20 active:scale-95 transition-all text-sm font-medium flex items-center space-x-1 border border-gray-500/30" title="履歴をすべてコピー">
-                <span>📋 全コピー</span>
+    <!-- 0. 上部ヘッダー（検索バー・CSV出力・設定ボタン） -->
+    <div class="flex-none px-3 py-2 flex justify-between items-center border-b space-x-2" style="border-color: var(--border-color);">
+        <div class="flex-1 relative">
+            <input type="text" id="search-input" oninput="tapeCalc.searchTape()" placeholder="🔍 履歴を検索..." class="w-full bg-gray-500/10 text-xs px-2.5 py-1.5 rounded-lg focus:outline-none placeholder-gray-400">
+        </div>
+        <div class="flex items-center space-x-1">
+            <button onclick="tapeCalc.exportCSV()" class="p-1.5 rounded-lg hover:bg-gray-500/20 active:scale-95 transition-all text-xs font-medium border border-gray-500/30" title="CSV出力">
+                📄 CSV
             </button>
-            <button onclick="tapeCalc.openSettings()" class="p-1 rounded-lg hover:bg-gray-500/20 active:scale-95 transition-all text-xl" title="設定">
+            <button onclick="tapeCalc.copyAllTape()" class="p-1.5 rounded-lg hover:bg-gray-500/20 active:scale-95 transition-all text-xs font-medium border border-gray-500/30" title="全コピー">
+                📋 全コピー
+            </button>
+            <button onclick="tapeCalc.openSettings()" class="p-1 rounded-lg hover:bg-gray-500/20 active:scale-95 transition-all text-lg" title="設定">
                 ⚙️
             </button>
         </div>
@@ -112,11 +144,9 @@
     <!-- キーパッドとディスプレイの固定コンテナ -->
     <div class="flex-none border-t" style="border-color: var(--border-color); padding-bottom: max(0.25rem, env(safe-area-inset-bottom));">
         <!-- 2. Display / 合計表示エリア -->
-        <div class="area-display px-4 py-2.5 border-b flex flex-col space-y-1">
-            <!-- 入力中の計算式を表示する領域 -->
+        <div class="area-display px-4 py-2 border-b flex flex-col space-y-1">
             <div id="expression-display" class="text-right text-sm tracking-wide h-5 overflow-x-auto no-scrollbar expr-color-muted"></div>
-            <!-- 現在の数値入力・計算結果領域 -->
-            <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[40px] overflow-x-auto no-scrollbar">0</div>
+            <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[38px] overflow-x-auto no-scrollbar">0</div>
             <div class="flex justify-between items-center opacity-70 pt-1 border-t" style="border-color: var(--border-color);">
                 <span class="text-sm font-medium">合計</span>
                 <div class="flex items-center space-x-1 cursor-pointer" onclick="tapeCalc.copyTotal()">
@@ -126,61 +156,110 @@
             </div>
         </div>
 
+        <!-- 便利ツールバー（割引/割り勘） -->
+        <div class="grid grid-cols-4 gap-[1px] area-grid border-b" style="border-color: var(--border-color);">
+            <button onclick="tapeCalc.applyDiscount(10)" class="btn-fn py-1 text-xs font-semibold key-active">10%OFF</button>
+            <button onclick="tapeCalc.applyDiscount(20)" class="btn-fn py-1 text-xs font-semibold key-active">20%OFF</button>
+            <button onclick="tapeCalc.applyDiscount(50)" class="btn-fn py-1 text-xs font-semibold key-active">半額</button>
+            <button onclick="tapeCalc.openSplitBill()" class="btn-fn py-1 text-xs font-semibold key-active text-[#00a4b8]">👥 割り勘</button>
+        </div>
+
         <!-- 税計算バー -->
         <div class="grid grid-cols-2 gap-[1px] area-grid border-b" style="border-color: var(--border-color);">
-            <button onclick="tapeCalc.applyTax(true)" class="btn-fn py-1.5 text-xs font-semibold flex items-center justify-center key-active">
+            <button onclick="tapeCalc.applyTax(true)" class="btn-fn py-1 text-xs font-semibold flex items-center justify-center key-active">
                 税込 (<span id="tax-rate-inc-label">10%</span>)
             </button>
-            <button onclick="tapeCalc.applyTax(false)" class="btn-fn py-1.5 text-xs font-semibold flex items-center justify-center key-active">
+            <button onclick="tapeCalc.applyTax(false)" class="btn-fn py-1 text-xs font-semibold flex items-center justify-center key-active">
                 税抜 (<span id="tax-rate-exc-label">10%</span>)
             </button>
         </div>
 
         <!-- 3. キーパッド -->
         <div class="grid grid-cols-4 gap-[1px] area-grid">
-            <button onclick="tapeCalc.clear()" class="btn-fn text-2xl h-14 flex items-center justify-center key-active font-normal">AC</button>
-            <button onclick="tapeCalc.clearTape()" class="btn-fn text-xl h-14 flex items-center justify-center key-active font-normal" title="履歴全削除">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <button onclick="tapeCalc.clear()" class="btn-fn text-2xl h-13 flex items-center justify-center key-active font-normal">AC</button>
+            <button onclick="tapeCalc.clearTape()" class="btn-fn text-xl h-13 flex items-center justify-center key-active font-normal" title="履歴全削除">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
-            <button onclick="tapeCalc.backspace()" class="btn-fn text-xl h-14 flex items-center justify-center key-active font-normal">⌫</button>
-            <button onclick="tapeCalc.setOperator('÷')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">÷</button>
+            <button onclick="tapeCalc.backspace()" class="btn-fn text-xl h-13 flex items-center justify-center key-active font-normal">⌫</button>
+            <button onclick="tapeCalc.setOperator('÷')" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">÷</button>
 
-            <button onclick="tapeCalc.appendNum('7')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">7</button>
-            <button onclick="tapeCalc.appendNum('8')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">8</button>
-            <button onclick="tapeCalc.appendNum('9')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">9</button>
-            <button onclick="tapeCalc.setOperator('×')" class="btn-op text-2xl h-14 flex items-center justify-center key-active font-normal">×</button>
+            <button onclick="tapeCalc.appendNum('7')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">7</button>
+            <button onclick="tapeCalc.appendNum('8')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">8</button>
+            <button onclick="tapeCalc.appendNum('9')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">9</button>
+            <button onclick="tapeCalc.setOperator('×')" class="btn-op text-2xl h-13 flex items-center justify-center key-active font-normal">×</button>
 
-            <button onclick="tapeCalc.appendNum('4')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">4</button>
-            <button onclick="tapeCalc.appendNum('5')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">5</button>
-            <button onclick="tapeCalc.appendNum('6')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">6</button>
-            <button onclick="tapeCalc.setOperator('-')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">-</button>
+            <button onclick="tapeCalc.appendNum('4')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">4</button>
+            <button onclick="tapeCalc.appendNum('5')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">5</button>
+            <button onclick="tapeCalc.appendNum('6')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">6</button>
+            <button onclick="tapeCalc.setOperator('-')" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">-</button>
 
-            <button onclick="tapeCalc.appendNum('1')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">1</button>
-            <button onclick="tapeCalc.appendNum('2')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">2</button>
-            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">3</button>
-            <button onclick="tapeCalc.setOperator('+')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">+</button>
+            <button onclick="tapeCalc.appendNum('1')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">1</button>
+            <button onclick="tapeCalc.appendNum('2')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">2</button>
+            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">3</button>
+            <button onclick="tapeCalc.setOperator('+')" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">+</button>
 
-            <button onclick="tapeCalc.appendNum('0')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">0</button>
-            <button onclick="tapeCalc.appendDot()" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">.</button>
-            <button onclick="tapeCalc.toggleSign()" class="btn-num text-xl h-14 flex items-center justify-center key-active font-normal">⁺/₋</button>
-            <button onclick="tapeCalc.calculate()" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">=</button>
+            <button onclick="tapeCalc.appendNum('0')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">0</button>
+            <button onclick="tapeCalc.appendDot()" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">.</button>
+            <button onclick="tapeCalc.toggleSign()" class="btn-num text-xl h-13 flex items-center justify-center key-active font-normal">⁺/₋</button>
+            <button onclick="tapeCalc.calculate()" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">=</button>
         </div>
     </div>
 
-    <!-- 4. 設定ダイアログ（モーダル） -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4" onclick="tapeCalc.closeSettings(event)">
+    <!-- 割り勘ダイアログ -->
+    <div id="split-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4" onclick="tapeCalc.closeSplitBill()">
         <div class="w-full max-w-xs rounded-2xl p-5 shadow-2xl border flex flex-col space-y-4" style="background-color: var(--modal-bg); border-color: var(--border-color);" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center border-b pb-3" style="border-color: var(--border-color);">
+            <h3 class="font-bold text-lg border-b pb-2" style="border-color: var(--border-color);">👥 割り勘計算</h3>
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium opacity-80">対象金額:</span>
+                <span id="split-target-amount" class="text-lg font-bold">0円</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium opacity-80">人数:</span>
+                <div class="flex items-center space-x-3 bg-gray-500/10 px-3 py-1 rounded-xl">
+                    <button onclick="tapeCalc.changeSplitPeople(-1)" class="text-lg font-bold px-2">-</button>
+                    <span id="split-people-count" class="text-lg font-bold">2人</span>
+                    <button onclick="tapeCalc.changeSplitPeople(1)" class="text-lg font-bold px-2">+</button>
+                </div>
+            </div>
+            <div class="bg-gray-500/10 p-3 rounded-xl flex flex-col space-y-1">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="opacity-80">1人あたり:</span>
+                    <span id="split-per-person" class="text-lg font-bold text-[#00a4b8]">0円</span>
+                </div>
+                <div class="flex justify-between items-center text-xs opacity-60">
+                    <span>あまり（端数）:</span>
+                    <span id="split-remainder">0円</span>
+                </div>
+            </div>
+            <button onclick="tapeCalc.closeSplitBill()" class="w-full py-2 bg-[#00a4b8] text-white font-bold rounded-xl">閉じる</button>
+        </div>
+    </div>
+
+    <!-- 設定ダイアログ -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4" onclick="tapeCalc.closeSettings(event)">
+        <div class="w-full max-w-xs rounded-2xl p-5 shadow-2xl border flex flex-col space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar" style="background-color: var(--modal-bg); border-color: var(--border-color);" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center border-b pb-2" style="border-color: var(--border-color);">
                 <h3 class="font-bold text-lg">設定</h3>
                 <button onclick="tapeCalc.closeSettings()" class="text-gray-400 hover:text-white text-xl font-bold px-2">✕</button>
             </div>
 
-            <!-- 消費税率設定 -->
+            <!-- テーマ切替 -->
             <div class="flex flex-col space-y-2">
+                <span class="text-sm font-medium opacity-80">デザインテーマ</span>
+                <div class="grid grid-cols-2 gap-2 bg-gray-500/10 p-1 rounded-xl">
+                    <button onclick="tapeCalc.setTheme('dark')" id="btn-theme-dark" class="py-1.5 text-xs rounded-lg transition-all font-medium">ダーク</button>
+                    <button onclick="tapeCalc.setTheme('light')" id="btn-theme-light" class="py-1.5 text-xs rounded-lg transition-all font-medium">ライト</button>
+                    <button onclick="tapeCalc.setTheme('retro')" id="btn-theme-retro" class="py-1.5 text-xs rounded-lg transition-all font-medium">昭和レトロ</button>
+                    <button onclick="tapeCalc.setTheme('cyber')" id="btn-theme-cyber" class="py-1.5 text-xs rounded-lg transition-all font-medium">サイバー</button>
+                </div>
+            </div>
+
+            <!-- 消費税率設定 -->
+            <div class="flex flex-col space-y-2 border-t pt-3" style="border-color: var(--border-color);">
                 <span class="text-sm font-medium opacity-80">消費税率</span>
                 <div class="grid grid-cols-2 gap-2 bg-gray-500/10 p-1 rounded-xl">
-                    <button onclick="tapeCalc.setTaxRate(10)" id="btn-tax-10" class="py-2 text-xs rounded-lg transition-all font-medium">10%</button>
-                    <button onclick="tapeCalc.setTaxRate(8)" id="btn-tax-8" class="py-2 text-xs rounded-lg transition-all font-medium">8% (軽減)</button>
+                    <button onclick="tapeCalc.setTaxRate(10)" id="btn-tax-10" class="py-1.5 text-xs rounded-lg transition-all font-medium">10%</button>
+                    <button onclick="tapeCalc.setTaxRate(8)" id="btn-tax-8" class="py-1.5 text-xs rounded-lg transition-all font-medium">8% (軽減)</button>
                 </div>
             </div>
 
@@ -188,9 +267,9 @@
             <div class="flex flex-col space-y-2 border-t pt-3" style="border-color: var(--border-color);">
                 <span class="text-sm font-medium opacity-80">履歴の文字サイズ</span>
                 <div class="grid grid-cols-3 gap-2 bg-gray-500/10 p-1 rounded-xl">
-                    <button onclick="tapeCalc.setFontSize('sm')" id="btn-size-sm" class="py-2 text-sm rounded-lg transition-all font-medium">小</button>
-                    <button onclick="tapeCalc.setFontSize('md')" id="btn-size-md" class="py-2 text-sm rounded-lg transition-all font-medium">中</button>
-                    <button onclick="tapeCalc.setFontSize('lg')" id="btn-size-lg" class="py-2 text-sm rounded-lg transition-all font-medium">大</button>
+                    <button onclick="tapeCalc.setFontSize('sm')" id="btn-size-sm" class="py-1.5 text-xs rounded-lg transition-all font-medium">小</button>
+                    <button onclick="tapeCalc.setFontSize('md')" id="btn-size-md" class="py-1.5 text-xs rounded-lg transition-all font-medium">中</button>
+                    <button onclick="tapeCalc.setFontSize('lg')" id="btn-size-lg" class="py-1.5 text-xs rounded-lg transition-all font-medium">大</button>
                 </div>
             </div>
 
@@ -198,9 +277,9 @@
             <div class="flex flex-col space-y-2 border-t pt-3" style="border-color: var(--border-color);">
                 <span class="text-sm font-medium opacity-80">途中式の文字色・濃さ</span>
                 <div class="grid grid-cols-3 gap-2 bg-gray-500/10 p-1 rounded-xl">
-                    <button onclick="tapeCalc.setExprColor('muted')" id="btn-expr-muted" class="py-2 text-xs rounded-lg transition-all font-medium">控えめ</button>
-                    <button onclick="tapeCalc.setExprColor('normal')" id="btn-expr-normal" class="py-2 text-xs rounded-lg transition-all font-medium">標準</button>
-                    <button onclick="tapeCalc.setExprColor('accent')" id="btn-expr-accent" class="py-2 text-xs rounded-lg transition-all font-medium">くっきり</button>
+                    <button onclick="tapeCalc.setExprColor('muted')" id="btn-expr-muted" class="py-1.5 text-xs rounded-lg transition-all font-medium">控えめ</button>
+                    <button onclick="tapeCalc.setExprColor('normal')" id="btn-expr-normal" class="py-1.5 text-xs rounded-lg transition-all font-medium">標準</button>
+                    <button onclick="tapeCalc.setExprColor('accent')" id="btn-expr-accent" class="py-1.5 text-xs rounded-lg transition-all font-medium">くっきり</button>
                 </div>
             </div>
 
@@ -210,12 +289,12 @@
                     <span class="text-sm font-medium opacity-80">タップ時の振動</span>
                     <span class="text-xs opacity-50">キー入力時に振動</span>
                 </div>
-                <button onclick="tapeCalc.toggleVibration()" id="btn-vibe-toggle" class="px-3 py-1.5 text-sm rounded-xl font-bold transition-all">
+                <button onclick="tapeCalc.toggleVibration()" id="btn-vibe-toggle" class="px-3 py-1 text-xs rounded-xl font-bold transition-all">
                     オフ
                 </button>
             </div>
 
-            <button onclick="tapeCalc.closeSettings()" class="w-full py-2.5 mt-2 bg-[#00a4b8] text-white font-bold rounded-xl active:scale-95 transition-transform">
+            <button onclick="tapeCalc.closeSettings()" class="w-full py-2 bg-[#00a4b8] text-white font-bold rounded-xl active:scale-95 transition-transform">
                 閉じる
             </button>
         </div>
@@ -229,15 +308,16 @@
                 this.formula = [];
                 this.shouldResetInput = false;
                 
-                // 設定データの保持
+                this.currentTheme = localStorage.getItem('calc_theme') || 'dark';
                 this.currentFontSize = localStorage.getItem('calc_font_size') || 'md';
                 this.currentExprColor = localStorage.getItem('calc_expr_color') || 'muted';
                 this.isVibrationEnabled = localStorage.getItem('calc_vibration') === 'true';
                 this.taxRate = parseInt(localStorage.getItem('calc_tax_rate')) || 10;
                 
-                // 履歴データの復元（localStorage）
                 const savedTape = localStorage.getItem('calc_tape_history');
                 this.tapeHistory = savedTape ? JSON.parse(savedTape) : [];
+
+                this.splitPeopleCount = 2;
 
                 this.expressionDisplayEl = document.getElementById('expression-display');
                 this.currentInputEl = document.getElementById('current-input');
@@ -245,9 +325,11 @@
                 this.grandTotalEl = document.getElementById('grand-total');
                 this.tapeContainerEl = document.getElementById('tape-container');
                 this.settingsModalEl = document.getElementById('settings-modal');
+                this.splitModalEl = document.getElementById('split-modal');
                 this.toastEl = document.getElementById('toast-message');
                 this.toastTextEl = document.getElementById('toast-text');
 
+                this.initTheme();
                 this.initFontSize();
                 this.initExprColor();
                 this.initVibrationUI();
@@ -256,12 +338,10 @@
                 this.initKeyboard();
             }
 
-            // ドメイン名が出ないアプリオリジナルのトースト表示
             showToast(msg) {
                 this.toastTextEl.textContent = msg;
                 this.toastEl.classList.remove('opacity-0', 'pointer-events-none');
                 this.toastEl.classList.add('opacity-100');
-
                 setTimeout(() => {
                     this.toastEl.classList.remove('opacity-100');
                     this.toastEl.classList.add('opacity-0', 'pointer-events-none');
@@ -284,58 +364,63 @@
                 this.settingsModalEl.classList.add('hidden');
             }
 
-            initFontSize() {
-                this.setFontSize(this.currentFontSize);
+            initTheme() {
+                this.setTheme(this.currentTheme);
             }
 
-            setFontSize(size) {
+            setTheme(theme) {
                 this.triggerVibration();
-                this.currentFontSize = size;
-                localStorage.setItem('calc_font_size', size);
-                
-                this.tapeContainerEl.classList.remove('tape-size-sm', 'tape-size-md', 'tape-size-lg');
-                this.tapeContainerEl.classList.add(`tape-size-${size}`);
+                this.currentTheme = theme;
+                localStorage.setItem('calc_theme', theme);
+                document.documentElement.setAttribute('data-theme', theme);
 
-                ['sm', 'md', 'lg'].forEach(s => {
-                    const btn = document.getElementById(`btn-size-${s}`);
-                    if (s === size) {
-                        btn.className = 'py-2 text-sm rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow';
-                    } else {
-                        btn.className = 'py-2 text-sm rounded-lg transition-all opacity-60 hover:opacity-100';
+                ['dark', 'light', 'retro', 'cyber'].forEach(t => {
+                    const btn = document.getElementById(`btn-theme-${t}`);
+                    if (btn) {
+                        if (t === theme) {
+                            btn.className = 'py-1.5 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow';
+                        } else {
+                            btn.className = 'py-1.5 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
+                        }
                     }
                 });
             }
 
-            initExprColor() {
-                this.setExprColor(this.currentExprColor);
+            initFontSize() { this.setFontSize(this.currentFontSize); }
+            setFontSize(size) {
+                this.triggerVibration();
+                this.currentFontSize = size;
+                localStorage.setItem('calc_font_size', size);
+                this.tapeContainerEl.classList.remove('tape-size-sm', 'tape-size-md', 'tape-size-lg');
+                this.tapeContainerEl.classList.add(`tape-size-${size}`);
+                ['sm', 'md', 'lg'].forEach(s => {
+                    const btn = document.getElementById(`btn-size-${s}`);
+                    if (btn) {
+                        btn.className = s === size ? 'py-1.5 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow' : 'py-1.5 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
+                    }
+                });
             }
 
+            initExprColor() { this.setExprColor(this.currentExprColor); }
             setExprColor(styleKey) {
                 this.triggerVibration();
                 this.currentExprColor = styleKey;
                 localStorage.setItem('calc_expr_color', styleKey);
-
                 this.expressionDisplayEl.classList.remove('expr-color-muted', 'expr-color-normal', 'expr-color-accent');
                 this.expressionDisplayEl.classList.add(`expr-color-${styleKey}`);
-
                 ['muted', 'normal', 'accent'].forEach(k => {
                     const btn = document.getElementById(`btn-expr-${k}`);
-                    if (k === styleKey) {
-                        btn.className = 'py-2 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow';
-                    } else {
-                        btn.className = 'py-2 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
+                    if (btn) {
+                        btn.className = k === styleKey ? 'py-1.5 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow' : 'py-1.5 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
                     }
                 });
             }
 
             initVibrationUI() {
                 const btn = document.getElementById('btn-vibe-toggle');
-                if (this.isVibrationEnabled) {
-                    btn.textContent = 'オン';
-                    btn.className = 'px-3 py-1.5 text-sm rounded-xl font-bold transition-all bg-[#00a4b8] text-white';
-                } else {
-                    btn.textContent = 'オフ';
-                    btn.className = 'px-3 py-1.5 text-sm rounded-xl font-bold transition-all bg-gray-500/20 text-gray-400';
+                if (btn) {
+                    btn.textContent = this.isVibrationEnabled ? 'オン' : 'オフ';
+                    btn.className = this.isVibrationEnabled ? 'px-3 py-1 text-xs rounded-xl font-bold transition-all bg-[#00a4b8] text-white' : 'px-3 py-1 text-xs rounded-xl font-bold transition-all bg-gray-500/20 text-gray-400';
                 }
             }
 
@@ -351,10 +436,8 @@
                 document.getElementById('tax-rate-exc-label').textContent = `${this.taxRate}%`;
                 [8, 10].forEach(r => {
                     const btn = document.getElementById(`btn-tax-${r}`);
-                    if (r === this.taxRate) {
-                        btn.className = 'py-2 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow';
-                    } else {
-                        btn.className = 'py-2 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
+                    if (btn) {
+                        btn.className = r === this.taxRate ? 'py-1.5 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow' : 'py-1.5 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
                     }
                 });
             }
@@ -372,21 +455,91 @@
                 if (isNaN(currentVal) || currentVal === 0) return;
 
                 const rate = this.taxRate / 100;
-                let res = 0;
-                let expStr = '';
-
-                if (isInclusive) {
-                    res = Math.round(currentVal * (1 + rate));
-                    expStr = `${this.formatNum(currentVal)} + Tax (${this.taxRate}%)`;
-                } else {
-                    res = Math.round(currentVal / (1 + rate));
-                    expStr = `${this.formatNum(currentVal)} - Tax (${this.taxRate}%)`;
-                }
+                let res = isInclusive ? Math.round(currentVal * (1 + rate)) : Math.round(currentVal / (1 + rate));
+                let expStr = isInclusive ? `${this.formatNum(currentVal)} + Tax (${this.taxRate}%)` : `${this.formatNum(currentVal)} - Tax (${this.taxRate}%)`;
 
                 this.addTapeItem(expStr, res);
                 this.currentInput = res.toString();
                 this.shouldResetInput = true;
                 this.updateDisplay();
+            }
+
+            applyDiscount(pct) {
+                this.triggerVibration();
+                const currentVal = parseFloat(this.unformatNum(this.currentInput));
+                if (isNaN(currentVal) || currentVal === 0) return;
+
+                const res = Math.round(currentVal * (1 - pct / 100));
+                const expStr = `${this.formatNum(currentVal)} - ${pct}%OFF`;
+
+                this.addTapeItem(expStr, res);
+                this.currentInput = res.toString();
+                this.shouldResetInput = true;
+                this.updateDisplay();
+            }
+
+            openSplitBill() {
+                this.triggerVibration();
+                const total = this.tapeHistory.reduce((acc, curr) => acc + curr.result, 0);
+                const target = total > 0 ? total : parseFloat(this.unformatNum(this.currentInput));
+                document.getElementById('split-target-amount').textContent = `${this.formatNum(target)}円`;
+                this.updateSplitCalc(target);
+                this.splitModalEl.classList.remove('hidden');
+            }
+
+            closeSplitBill() {
+                this.triggerVibration();
+                this.splitModalEl.classList.add('hidden');
+            }
+
+            changeSplitPeople(delta) {
+                this.triggerVibration();
+                this.splitPeopleCount = Math.max(2, this.splitPeopleCount + delta);
+                document.getElementById('split-people-count').textContent = `${this.splitPeopleCount}人`;
+                const total = this.tapeHistory.reduce((acc, curr) => acc + curr.result, 0);
+                const target = total > 0 ? total : parseFloat(this.unformatNum(this.currentInput));
+                this.updateSplitCalc(target);
+            }
+
+            updateSplitCalc(target) {
+                const perPerson = Math.floor(target / this.splitPeopleCount);
+                const remainder = target % this.splitPeopleCount;
+                document.getElementById('split-per-person').textContent = `${this.formatNum(perPerson)}円`;
+                document.getElementById('split-remainder').textContent = `${this.formatNum(remainder)}円`;
+            }
+
+            searchTape() {
+                const query = document.getElementById('search-input').value.toLowerCase();
+                const filtered = this.tapeHistory.filter(item => 
+                    item.expression.toLowerCase().includes(query) ||
+                    item.result.toString().includes(query) ||
+                    (item.note && item.note.toLowerCase().includes(query))
+                );
+                this.tapeListEl.innerHTML = '';
+                filtered.forEach(item => this.renderTapeItem(item));
+            }
+
+            exportCSV() {
+                this.triggerVibration();
+                if (this.tapeHistory.length === 0) {
+                    this.showToast('出力する履歴がありません');
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,式,結果,メモ\n";
+                this.tapeHistory.forEach(item => {
+                    csvContent += `"${item.expression}",${item.result},"${item.note || ''}"\n`;
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "tape_calc_history.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                this.showToast('CSVを出力しました');
             }
 
             formatNum(numStr) {
@@ -402,14 +555,9 @@
 
             updateDisplay() {
                 this.currentInputEl.textContent = this.formatNum(this.currentInput);
-                
                 let text = '';
                 for (let item of this.formula) {
-                    if (['+', '-', '×', '÷'].includes(item)) {
-                        text += ` ${item} `;
-                    } else {
-                        text += this.formatNum(item);
-                    }
+                    text += ['+', '-', '×', '÷'].includes(item) ? ` ${item} ` : this.formatNum(item);
                 }
                 if (!this.shouldResetInput || this.formula.length === 0) {
                     if (this.formula.length > 0 && ['+', '-', '×', '÷'].includes(this.formula[this.formula.length - 1])) {
@@ -480,10 +628,7 @@
                 if (this.formula.length === 0) return;
 
                 this.formula.push(this.currentInput);
-
-                const fullExpressionStr = this.formula.map(item => {
-                    return ['+', '-', '×', '÷'].includes(item) ? item : this.formatNum(item);
-                }).join(' ');
+                const fullExpressionStr = this.formula.map(item => ['+', '-', '×', '÷'].includes(item) ? item : this.formatNum(item)).join(' ');
 
                 let res = parseFloat(this.unformatNum(this.formula[0]));
                 for (let i = 1; i < this.formula.length; i += 2) {
@@ -496,7 +641,6 @@
                 }
 
                 res = Math.round(res * 1e10) / 1e10;
-
                 this.addTapeItem(fullExpressionStr, res);
 
                 this.currentInput = res.toString();
@@ -619,8 +763,6 @@
             clearTape() {
                 this.triggerVibration();
                 if (this.tapeHistory.length === 0) return;
-                
-                // 全削除時は直接削除しトースト通知を表示
                 this.tapeHistory = [];
                 this.saveTapeHistory();
                 this.tapeListEl.innerHTML = '';
