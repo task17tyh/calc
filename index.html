@@ -86,6 +86,11 @@
 </head>
 <body class="flex flex-col justify-between w-full relative h-screen">
 
+    <!-- アプリ内トースト通知（ドメイン名が表示されないカスタム通知） -->
+    <div id="toast-message" class="fixed top-12 left-1/2 -translate-x-1/2 bg-[#00a4b8] text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center space-x-1">
+        <span id="toast-text">コピーしました</span>
+    </div>
+
     <!-- 0. 上部ヘッダー（コピー＆設定ボタン） -->
     <div class="flex-none px-4 py-2 flex justify-between items-center border-b opacity-90" style="border-color: var(--border-color);">
         <span class="text-sm font-semibold tracking-wide opacity-80">計算履歴</span>
@@ -240,6 +245,8 @@
                 this.grandTotalEl = document.getElementById('grand-total');
                 this.tapeContainerEl = document.getElementById('tape-container');
                 this.settingsModalEl = document.getElementById('settings-modal');
+                this.toastEl = document.getElementById('toast-message');
+                this.toastTextEl = document.getElementById('toast-text');
 
                 this.initFontSize();
                 this.initExprColor();
@@ -247,6 +254,18 @@
                 this.initTaxUI();
                 this.renderSavedTape();
                 this.initKeyboard();
+            }
+
+            // ドメイン名が出ないアプリオリジナルのトースト表示
+            showToast(msg) {
+                this.toastTextEl.textContent = msg;
+                this.toastEl.classList.remove('opacity-0', 'pointer-events-none');
+                this.toastEl.classList.add('opacity-100');
+
+                setTimeout(() => {
+                    this.toastEl.classList.remove('opacity-100');
+                    this.toastEl.classList.add('opacity-0', 'pointer-events-none');
+                }, 2000);
             }
 
             triggerVibration() {
@@ -566,7 +585,7 @@
             copyAllTape() {
                 this.triggerVibration();
                 if (this.tapeHistory.length === 0) {
-                    alert('コピーする履歴がありません。');
+                    this.showToast('コピーする履歴がありません');
                     return;
                 }
 
@@ -579,7 +598,7 @@
                 lines.push(`合計: ${this.formatNum(Math.round(total * 1e10) / 1e10)}`);
 
                 navigator.clipboard.writeText(lines.join('\n')).then(() => {
-                    alert('計算履歴をクリップボードに全コピーしました！');
+                    this.showToast('計算履歴をコピーしました！');
                 });
             }
 
@@ -600,17 +619,20 @@
             clearTape() {
                 this.triggerVibration();
                 if (this.tapeHistory.length === 0) return;
-                if (confirm('すべての計算履歴を削除しますか？')) {
-                    this.tapeHistory = [];
-                    this.saveTapeHistory();
-                    this.tapeListEl.innerHTML = '';
-                    this.updateGrandTotal();
-                }
+                
+                // 全削除時は直接削除しトースト通知を表示
+                this.tapeHistory = [];
+                this.saveTapeHistory();
+                this.tapeListEl.innerHTML = '';
+                this.updateGrandTotal();
+                this.showToast('履歴を消去しました');
             }
 
             copyTotal() {
                 this.triggerVibration();
-                navigator.clipboard.writeText(this.grandTotalEl.textContent);
+                navigator.clipboard.writeText(this.grandTotalEl.textContent).then(() => {
+                    this.showToast('合計額をコピーしました');
+                });
             }
 
             initKeyboard() {
