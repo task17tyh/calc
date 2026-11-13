@@ -195,7 +195,7 @@
 
             <button onclick="tapeCalc.appendNum('1')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">1</button>
             <button onclick="tapeCalc.appendNum('2')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">2</button>
-            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">3</button>
+            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">3</button>
             <button onclick="tapeCalc.setOperator('+')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">+</button>
 
             <button onclick="tapeCalc.appendNum('0')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">0</button>
@@ -611,7 +611,15 @@
 
             calculate() {
                 this.triggerVibration();
-                if (this.formula.length === 0) return;
+
+                // 途中式（＋やーなど）が無く単に数字のみ入力して＝を押した場合
+                if (this.formula.length === 0) {
+                    const val = parseFloat(this.unformatNum(this.currentInput));
+                    this.addTapeItem(this.formatNum(val), val);
+                    this.shouldResetInput = true;
+                    this.updateDisplay();
+                    return;
+                }
 
                 this.formula.push(this.currentInput);
                 const fullExpressionStr = this.formula.map(item => ['+', '-', '×', '÷'].includes(item) ? item : this.formatNum(item)).join(' ');
