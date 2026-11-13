@@ -77,6 +77,11 @@
         .tape-size-sm .tape-item { font-size: 0.875rem; /* 14px */ line-height: 1.25rem; }
         .tape-size-md .tape-item { font-size: 1.125rem; /* 18px */ line-height: 1.75rem; }
         .tape-size-lg .tape-item { font-size: 1.5rem;   /* 24px */ line-height: 2rem; }
+
+        /* 途中式のカラー・濃さ切替クラス */
+        .expr-color-muted { color: #9ca3af; font-weight: 400; }  /* 薄いグレー */
+        .expr-color-normal { color: var(--text-main); font-weight: 500; opacity: 0.9; } /* はっきり（メイン文字色） */
+        .expr-color-accent { color: #00a4b8; font-weight: 600; } /* シアン（アクセント色） */
     </style>
 </head>
 <body class="flex flex-col justify-between w-full relative h-screen">
@@ -99,7 +104,7 @@
         <!-- 2. Display / 合計表示エリア -->
         <div class="area-display px-4 py-3 border-b flex flex-col space-y-1">
             <!-- 入力中の計算式を表示する領域 -->
-            <div id="expression-display" class="text-right text-sm text-gray-400 tracking-wide h-5 overflow-x-auto no-scrollbar"></div>
+            <div id="expression-display" class="text-right text-sm tracking-wide h-5 overflow-x-auto no-scrollbar expr-color-muted"></div>
             <!-- 現在の数値入力・計算結果領域 -->
             <div id="current-input" class="text-right text-3xl font-light text-disp tracking-wide min-h-[40px] overflow-x-auto no-scrollbar">0</div>
             <div class="flex justify-between items-center opacity-70 pt-1 border-t" style="border-color: var(--border-color);">
@@ -150,7 +155,7 @@
                 <button onclick="tapeCalc.closeSettings()" class="text-gray-400 hover:text-white text-xl font-bold px-2">✕</button>
             </div>
 
-            <!-- 文字サイズ設定 -->
+            <!-- 履歴文字サイズ設定 -->
             <div class="flex flex-col space-y-2">
                 <span class="text-sm font-medium opacity-80">履歴の文字サイズ</span>
                 <div class="grid grid-cols-3 gap-2 bg-gray-500/10 p-1 rounded-xl">
@@ -160,11 +165,21 @@
                 </div>
             </div>
 
+            <!-- 途中式の文字色・濃さ設定 -->
+            <div class="flex flex-col space-y-2 border-t pt-3" style="border-color: var(--border-color);">
+                <span class="text-sm font-medium opacity-80">途中式の文字色・濃さ</span>
+                <div class="grid grid-cols-3 gap-2 bg-gray-500/10 p-1 rounded-xl">
+                    <button onclick="tapeCalc.setExprColor('muted')" id="btn-expr-muted" class="py-2 text-xs rounded-lg transition-all font-medium">控えめ</button>
+                    <button onclick="tapeCalc.setExprColor('normal')" id="btn-expr-normal" class="py-2 text-xs rounded-lg transition-all font-medium">標準</button>
+                    <button onclick="tapeCalc.setExprColor('accent')" id="btn-expr-accent" class="py-2 text-xs rounded-lg transition-all font-medium">くっきり</button>
+                </div>
+            </div>
+
             <!-- タップバイブレーション設定 -->
-            <div class="flex justify-between items-center pt-2 border-t" style="border-color: var(--border-color);">
+            <div class="flex justify-between items-center pt-3 border-t" style="border-color: var(--border-color);">
                 <div class="flex flex-col">
-                    <span class="text-sm font-medium opacity-80">タップ時の振動（バイブ）</span>
-                    <span class="text-xs opacity-50">キーを押した際に少し振動</span>
+                    <span class="text-sm font-medium opacity-80">タップ時の振動</span>
+                    <span class="text-xs opacity-50">キー入力時に振動</span>
                 </div>
                 <button onclick="tapeCalc.toggleVibration()" id="btn-vibe-toggle" class="px-3 py-1.5 text-sm rounded-xl font-bold transition-all">
                     オフ
@@ -186,6 +201,7 @@
                 this.shouldResetInput = false;
                 this.tapeHistory = [];
                 this.currentFontSize = localStorage.getItem('calc_font_size') || 'md';
+                this.currentExprColor = localStorage.getItem('calc_expr_color') || 'muted';
                 this.isVibrationEnabled = localStorage.getItem('calc_vibration') === 'true';
                 
                 this.expressionDisplayEl = document.getElementById('expression-display');
@@ -196,6 +212,7 @@
                 this.settingsModalEl = document.getElementById('settings-modal');
 
                 this.initFontSize();
+                this.initExprColor();
                 this.initVibrationUI();
                 this.initKeyboard();
             }
@@ -203,7 +220,7 @@
             // 振動フィードバック
             triggerVibration() {
                 if (this.isVibrationEnabled && 'vibrate' in navigator) {
-                    navigator.vibrate(15); // 15ミリ秒の微細な振動
+                    navigator.vibrate(15);
                 }
             }
 
@@ -235,6 +252,28 @@
                         btn.className = 'py-2 text-sm rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow';
                     } else {
                         btn.className = 'py-2 text-sm rounded-lg transition-all opacity-60 hover:opacity-100';
+                    }
+                });
+            }
+
+            initExprColor() {
+                this.setExprColor(this.currentExprColor);
+            }
+
+            setExprColor(styleKey) {
+                this.triggerVibration();
+                this.currentExprColor = styleKey;
+                localStorage.setItem('calc_expr_color', styleKey);
+
+                this.expressionDisplayEl.classList.remove('expr-color-muted', 'expr-color-normal', 'expr-color-accent');
+                this.expressionDisplayEl.classList.add(`expr-color-${styleKey}`);
+
+                ['muted', 'normal', 'accent'].forEach(k => {
+                    const btn = document.getElementById(`btn-expr-${k}`);
+                    if (k === styleKey) {
+                        btn.className = 'py-2 text-xs rounded-lg transition-all bg-[#00a4b8] text-white font-bold shadow';
+                    } else {
+                        btn.className = 'py-2 text-xs rounded-lg transition-all opacity-60 hover:opacity-100';
                     }
                 });
             }
