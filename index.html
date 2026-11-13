@@ -156,52 +156,45 @@
             </div>
         </div>
 
-        <!-- 便利ツールバー（割引/割り勘） -->
-        <div class="grid grid-cols-4 gap-[1px] area-grid border-b" style="border-color: var(--border-color);">
-            <button onclick="tapeCalc.applyDiscount(10)" class="btn-fn py-1 text-xs font-semibold key-active">10%OFF</button>
-            <button onclick="tapeCalc.applyDiscount(20)" class="btn-fn py-1 text-xs font-semibold key-active">20%OFF</button>
-            <button onclick="tapeCalc.applyDiscount(50)" class="btn-fn py-1 text-xs font-semibold key-active">半額</button>
-            <button onclick="tapeCalc.openSplitBill()" class="btn-fn py-1 text-xs font-semibold key-active text-[#00a4b8]">👥 割り勘</button>
-        </div>
-
-        <!-- 税計算バー -->
-        <div class="grid grid-cols-2 gap-[1px] area-grid border-b" style="border-color: var(--border-color);">
-            <button onclick="tapeCalc.applyTax(true)" class="btn-fn py-1 text-xs font-semibold flex items-center justify-center key-active">
+        <!-- 機能バー (税計算・割り勘) -->
+        <div class="grid grid-cols-3 gap-[1px] area-grid border-b" style="border-color: var(--border-color);">
+            <button onclick="tapeCalc.applyTax(true)" class="btn-fn py-1.5 text-xs font-semibold flex items-center justify-center key-active">
                 税込 (<span id="tax-rate-inc-label">10%</span>)
             </button>
-            <button onclick="tapeCalc.applyTax(false)" class="btn-fn py-1 text-xs font-semibold flex items-center justify-center key-active">
+            <button onclick="tapeCalc.applyTax(false)" class="btn-fn py-1.5 text-xs font-semibold flex items-center justify-center key-active">
                 税抜 (<span id="tax-rate-exc-label">10%</span>)
             </button>
+            <button onclick="tapeCalc.openSplitBill()" class="btn-fn py-1.5 text-xs font-semibold key-active text-[#00a4b8]">👥 割り勘</button>
         </div>
 
         <!-- 3. キーパッド -->
         <div class="grid grid-cols-4 gap-[1px] area-grid">
-            <button onclick="tapeCalc.clear()" class="btn-fn text-2xl h-13 flex items-center justify-center key-active font-normal">AC</button>
-            <button onclick="tapeCalc.clearTape()" class="btn-fn text-xl h-13 flex items-center justify-center key-active font-normal" title="履歴全削除">
+            <button onclick="tapeCalc.clear()" class="btn-fn text-2xl h-14 flex items-center justify-center key-active font-normal">AC</button>
+            <button onclick="tapeCalc.clearTape()" class="btn-fn text-xl h-14 flex items-center justify-center key-active font-normal" title="履歴全削除">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
-            <button onclick="tapeCalc.backspace()" class="btn-fn text-xl h-13 flex items-center justify-center key-active font-normal">⌫</button>
-            <button onclick="tapeCalc.setOperator('÷')" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">÷</button>
+            <button onclick="tapeCalc.backspace()" class="btn-fn text-xl h-14 flex items-center justify-center key-active font-normal">⌫</button>
+            <button onclick="tapeCalc.setOperator('÷')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">÷</button>
 
-            <button onclick="tapeCalc.appendNum('7')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">7</button>
-            <button onclick="tapeCalc.appendNum('8')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">8</button>
-            <button onclick="tapeCalc.appendNum('9')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">9</button>
-            <button onclick="tapeCalc.setOperator('×')" class="btn-op text-2xl h-13 flex items-center justify-center key-active font-normal">×</button>
+            <button onclick="tapeCalc.appendNum('7')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">7</button>
+            <button onclick="tapeCalc.appendNum('8')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">8</button>
+            <button onclick="tapeCalc.appendNum('9')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">9</button>
+            <button onclick="tapeCalc.setOperator('×')" class="btn-op text-2xl h-14 flex items-center justify-center key-active font-normal">×</button>
 
-            <button onclick="tapeCalc.appendNum('4')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">4</button>
-            <button onclick="tapeCalc.appendNum('5')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">5</button>
-            <button onclick="tapeCalc.appendNum('6')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">6</button>
-            <button onclick="tapeCalc.setOperator('-')" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">-</button>
+            <button onclick="tapeCalc.appendNum('4')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">4</button>
+            <button onclick="tapeCalc.appendNum('5')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">5</button>
+            <button onclick="tapeCalc.appendNum('6')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">6</button>
+            <button onclick="tapeCalc.setOperator('-')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">-</button>
 
-            <button onclick="tapeCalc.appendNum('1')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">1</button>
-            <button onclick="tapeCalc.appendNum('2')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">2</button>
-            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">3</button>
-            <button onclick="tapeCalc.setOperator('+')" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">+</button>
+            <button onclick="tapeCalc.appendNum('1')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">1</button>
+            <button onclick="tapeCalc.appendNum('2')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">2</button>
+            <button onclick="tapeCalc.appendNum('3')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">3</button>
+            <button onclick="tapeCalc.setOperator('+')" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">+</button>
 
-            <button onclick="tapeCalc.appendNum('0')" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">0</button>
-            <button onclick="tapeCalc.appendDot()" class="btn-num text-2xl h-13 flex items-center justify-center key-active font-normal">.</button>
-            <button onclick="tapeCalc.toggleSign()" class="btn-num text-xl h-13 flex items-center justify-center key-active font-normal">⁺/₋</button>
-            <button onclick="tapeCalc.calculate()" class="btn-op text-3xl h-13 flex items-center justify-center key-active font-normal">=</button>
+            <button onclick="tapeCalc.appendNum('0')" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">0</button>
+            <button onclick="tapeCalc.appendDot()" class="btn-num text-2xl h-14 flex items-center justify-center key-active font-normal">.</button>
+            <button onclick="tapeCalc.toggleSign()" class="btn-num text-xl h-14 flex items-center justify-center key-active font-normal">⁺/₋</button>
+            <button onclick="tapeCalc.calculate()" class="btn-op text-3xl h-14 flex items-center justify-center key-active font-normal">=</button>
         </div>
     </div>
 
@@ -457,20 +450,6 @@
                 const rate = this.taxRate / 100;
                 let res = isInclusive ? Math.round(currentVal * (1 + rate)) : Math.round(currentVal / (1 + rate));
                 let expStr = isInclusive ? `${this.formatNum(currentVal)} + Tax (${this.taxRate}%)` : `${this.formatNum(currentVal)} - Tax (${this.taxRate}%)`;
-
-                this.addTapeItem(expStr, res);
-                this.currentInput = res.toString();
-                this.shouldResetInput = true;
-                this.updateDisplay();
-            }
-
-            applyDiscount(pct) {
-                this.triggerVibration();
-                const currentVal = parseFloat(this.unformatNum(this.currentInput));
-                if (isNaN(currentVal) || currentVal === 0) return;
-
-                const res = Math.round(currentVal * (1 - pct / 100));
-                const expStr = `${this.formatNum(currentVal)} - ${pct}%OFF`;
 
                 this.addTapeItem(expStr, res);
                 this.currentInput = res.toString();
